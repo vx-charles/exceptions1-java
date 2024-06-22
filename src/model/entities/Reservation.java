@@ -1,5 +1,7 @@
 package model.entities;
 
+import model.exceptions.DomainException;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -11,7 +13,13 @@ public class Reservation {
 
     private static final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 
-    public Reservation(Integer roomNumber, Date checkIn, Date checkOut) {
+    // Usado o tratamento de exceção dentro do constructor, e quando fazer o "new", o constructor fará a tratativa antecipadamente.
+    public Reservation(Integer roomNumber, Date checkIn, Date checkOut) throws DomainException {
+        // Programação defensiva - tratar as exceções no começo dos métodoss.
+        if(!checkOut.after(checkIn)) {
+            throw new DomainException("Error in reservation: Check-out date must be after check-in date");
+        }
+
         this.roomNumber = roomNumber;
         this.checkIn = checkIn;
         this.checkOut = checkOut;
@@ -38,21 +46,21 @@ public class Reservation {
         return TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS); // converte o milisegundos para dias.
     }
 
-    public String updateDates(Date checkIn, Date checkOut) {
+    // método agora lança uma exeção tratada pelo "throws DomainException".
+    public void updateDates(Date checkIn, Date checkOut) throws DomainException {
         Date now = new Date();
 
         if(checkIn.before(now) || checkOut.before(now)) {
-            return "Error in reservation: Reservation dates for update must be future dates";
+            // IllegalArgumentException - exceção do Java, usado quando os argumentos do método são inválidos, no caso o erro verificado nos valores do argumento passado no IF.
+            throw new DomainException("Error in reservation: Reservation dates for update must be future dates");
         }
 
         if(!checkOut.after(checkIn)) {
-            return "Error in reservation: Check-out date must be after check-in date";
+            throw new DomainException("Error in reservation: Check-out date must be after check-in date");
         }
 
         this.checkIn = checkIn;
         this.checkOut = checkOut;
-
-        return null; // retorna null por não ter nenhum erro.
     }
 
     @Override
